@@ -29,8 +29,8 @@ class ImageGallery extends StatefulWidget {
 }
 
 class _ImageGalleryState extends State<ImageGallery> {
-  // Liste des chemins des images
-  final List<String> imagePaths = const [
+  // Liste des chemins des images (mutable now)
+  List<String> imagePaths = [
     'images/img1.jpg',
     'images/img2.jpg',
     'images/img3.jpg',
@@ -40,6 +40,19 @@ class _ImageGalleryState extends State<ImageGallery> {
   ];
 
   bool isGridView = true; // Toggle between grid and carousel
+
+  // Delete image function
+  void deleteImage(int index) {
+    setState(() {
+      imagePaths.removeAt(index);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Image deleted'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,109 +73,144 @@ class _ImageGalleryState extends State<ImageGallery> {
           ),
         ],
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: isGridView
-            ? GridViewGallery(imagePaths: imagePaths)
-            : CarouselViewGallery(imagePaths: imagePaths),
-      ),
+      body: imagePaths.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.photo_library, size: 100, color: Colors.grey),
+                  SizedBox(height: 20),
+                  Text(
+                    'No images in gallery',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: isGridView
+                  ? GridViewGallery(
+                      imagePaths: imagePaths,
+                      onDelete: deleteImage,
+                    )
+                  : CarouselViewGallery(
+                      imagePaths: imagePaths,
+                      onDelete: deleteImage,
+                    ),
+            ),
     );
   }
 }
 
-// Grid View Layout
+// Grid View Layout - Phone Gallery Style
 class GridViewGallery extends StatelessWidget {
   final List<String> imagePaths;
+  final Function(int) onDelete;
 
-  const GridViewGallery({super.key, required this.imagePaths});
+  const GridViewGallery({
+    super.key,
+    required this.imagePaths,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(2.0),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 1,
+          crossAxisCount: 4, // 4 columns for smaller thumbnails
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
+          childAspectRatio: 1, // Square thumbnails
         ),
         itemCount: imagePaths.length,
         itemBuilder: (context, index) {
-          return Hero(
-            tag: 'image_$index',
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FullScreenCarousel(
-                      imagePaths: imagePaths,
-                      initialIndex: index,
-                    ),
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FullScreenCarousel(
+                    imagePaths: imagePaths,
+                    initialIndex: index,
+                    onDelete: onDelete,
                   ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        imagePaths[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: Icon(
-                              Icons.image,
-                              size: 50,
-                              color: Colors.grey[600],
+              );
+            },
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Image thumbnail
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    imagePaths[index],
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: Icon(
+                          Icons.image,
+                          size: 30,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // Delete button overlay
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () {
+                      // Show confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Delete Image'),
+                            content: const Text(
+                              'Are you sure you want to delete this image?',
                             ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  onDelete(index);
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Delete'),
+                              ),
+                            ],
                           );
                         },
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        shape: BoxShape.circle,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Colors.black.withValues(alpha: 0.7),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                          child: Text(
-                            'Image ${index + 1}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 18,
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           );
         },
@@ -174,8 +222,13 @@ class GridViewGallery extends StatelessWidget {
 // Carousel View Layout
 class CarouselViewGallery extends StatefulWidget {
   final List<String> imagePaths;
+  final Function(int) onDelete;
 
-  const CarouselViewGallery({super.key, required this.imagePaths});
+  const CarouselViewGallery({
+    super.key,
+    required this.imagePaths,
+    required this.onDelete,
+  });
 
   @override
   State<CarouselViewGallery> createState() => _CarouselViewGalleryState();
@@ -228,6 +281,7 @@ class _CarouselViewGalleryState extends State<CarouselViewGallery> {
                         builder: (context) => FullScreenCarousel(
                           imagePaths: widget.imagePaths,
                           initialIndex: index,
+                          onDelete: widget.onDelete,
                         ),
                       ),
                     );
@@ -297,11 +351,13 @@ class _CarouselViewGalleryState extends State<CarouselViewGallery> {
 class FullScreenCarousel extends StatefulWidget {
   final List<String> imagePaths;
   final int initialIndex;
+  final Function(int) onDelete;
 
   const FullScreenCarousel({
     super.key,
     required this.imagePaths,
     required this.initialIndex,
+    required this.onDelete,
   });
 
   @override
@@ -325,6 +381,33 @@ class _FullScreenCarouselState extends State<FullScreenCarousel> {
     super.dispose();
   }
 
+  void _deleteCurrentImage() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Image'),
+          content: const Text('Are you sure you want to delete this image?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                widget.onDelete(_currentIndex);
+                Navigator.pop(context); // Return to gallery
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -341,9 +424,13 @@ class _FullScreenCarouselState extends State<FullScreenCarousel> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.delete, color: Colors.white),
+            onPressed: _deleteCurrentImage,
+            tooltip: 'Delete Image',
+          ),
+          IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
             onPressed: () {
-              // Share functionality placeholder
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Share functionality')),
               );
