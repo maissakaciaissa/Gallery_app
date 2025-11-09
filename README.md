@@ -13,14 +13,13 @@ A simple Flutter image gallery application with grid and carousel view modes.
 ## Screenshots 📱
 
 ### Grid View
-![grid_view](https://github.com/user-attachments/assets/acba405c-d372-4098-a281-71579d399aea)
-
+<img src="https://github.com/user-attachments/assets/acba405c-d372-4098-a281-71579d399aea" width="300">
 
 ### Carousel View
-![car_view](https://github.com/user-attachments/assets/1ff102d8-a595-414b-938b-c883af7f55b8)
+<img src="https://github.com/user-attachments/assets/1ff102d8-a595-414b-938b-c883af7f55b8" width="300">
 
 ### Full Screen View
-![full_screen](https://github.com/user-attachments/assets/d54543b7-3ba5-4034-b57f-3765eccf34bf)
+<img src="https://github.com/user-attachments/assets/d54543b7-3ba5-4034-b57f-3765eccf34bf" width="300">
 
 
 ## Tech Stack 🛠️
@@ -47,7 +46,7 @@ This is a **static gallery** application. Images are loaded from the `assets/ima
 
 1. Clone the repository
 ```bash
-git clone <repository-url>
+git clone 
 cd advanced_gallery
 ```
 
