@@ -12,15 +12,15 @@ A simple Flutter image gallery application with grid and carousel view modes.
 
 ## Screenshots 📱
 
-### Grid View
+<p align="center">
 <img src="https://github.com/user-attachments/assets/acba405c-d372-4098-a281-71579d399aea" width="300">
 
-### Carousel View
+
 <img src="https://github.com/user-attachments/assets/1ff102d8-a595-414b-938b-c883af7f55b8" width="300">
 
-### Full Screen View
-<img src="https://github.com/user-attachments/assets/d54543b7-3ba5-4034-b57f-3765eccf34bf" width="300">
 
+<img src="https://github.com/user-attachments/assets/d54543b7-3ba5-4034-b57f-3765eccf34bf" width="300">
+</p>
 
 ## Tech Stack 🛠️
 
